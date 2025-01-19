@@ -32,7 +32,7 @@ async function fetchAttendanceData() {
         }
 
         // Fetch data from backend with token included in the headers
-        const response = await fetch(`http://localhost:3000/view_attendance?date=${date}&course=${course}&year=${year}&semester=${semester}&nocache=${new Date().getTime()}`, {
+        const response = await fetch(`https://aaasc-attendance.onrender.com/view_attendance?date=${date}&course=${course}&year=${year}&semester=${semester}&nocache=${new Date().getTime()}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}` // Include token in Authorization header

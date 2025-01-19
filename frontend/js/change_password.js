@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Send request to update the password
-        fetch('http://localhost:3000/update_department_password', {
+        fetch('https://aaasc-attendance.onrender.com/update_department_password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
