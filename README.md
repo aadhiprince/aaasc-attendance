@@ -28,9 +28,8 @@ A mobile-friendly, full-stack web application that allows staff to manage studen
 - **Backend:** Node.js, Express.js  
 - **Database:** MySQL  
 - **Authentication:** JWT (JSON Web Tokens)  
-- **Deployment:** Render (Backend), Netlify (Frontend) *(If deployed)*  
+- **Deployment:** Render (Backend), Netlify (Frontend)  
 
-## Live Demo  
 🔗 [Live Link](
 https://aaasc-attendance-project.netlify.app/)
 ---
