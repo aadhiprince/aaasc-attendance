@@ -68,6 +68,6 @@ A **mobile-friendly**, full-stack web application that empowers staff to manage 
 ---
 
 ## 🌐 Live Demo
--- [Live Link](#)
+-- [Live Link](https://aaasc-attendance-project.netlify.app/)
 
 
