@@ -52,6 +52,23 @@
   </footer>
 
 <script>
+  window.addEventListener('load', () => {
+  fetch('https://aaasc-attendance.onrender.com/api/health-check', {
+    method: 'GET',
+    cache: 'no-cache',
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log('Backend warmed up!');
+      } else {
+        console.error('Warm-up failed: ', response.statusText);
+      }
+    })
+    .catch((error) => {
+      console.error('Error warming up backend:', error);
+    });
+});
+
   // Add click animation and redirection to the login button
   document.querySelector('.login-btn').addEventListener('click', function () {
       this.classList.add('clicked');

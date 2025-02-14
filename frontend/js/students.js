@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const studentData = { name, course, year, semester };
         const method = selectedStudentId ? 'PUT' : 'POST';
-        const url = selectedStudentId ? `https://aaasc-attendance.onrender.com/update_student?id=${selectedStudentId}` : 'https://aaasc-attendance.onrender.com/add_student';
+        const url = selectedStudentId ? `https://aaasc-attendance.onrender.com/update_student?id=${selectedStudentId}` : 'http://localhost:3000/add_student';
 
         if (selectedStudentId) {
             studentData.id = selectedStudentId;

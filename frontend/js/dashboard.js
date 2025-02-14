@@ -1,15 +1,35 @@
+// Warm up the backend on page load
+window.addEventListener("load", () => {
+  fetch("http://localhost:3000/api/health-check", {
+    method: "GET",
+    cache: "no-cache",
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log("Backend warmed up!");
+      } else {
+        console.error("Warm-up failed: ", response.statusText);
+      }
+    })
+    .catch((error) => {
+      console.error("Error warming up backend:", error);
+    });
+});
+
+// Main functionality after DOM content is loaded
 document.addEventListener("DOMContentLoaded", function () {
   const token = localStorage.getItem("auth_token");
+
+  // Check for token and redirect if not logged in
   if (!token) {
     alert("Unauthorized access. Please log in.");
     window.location.href = "login.html";
     return;
   }
 
-  // Hamburger Menu Toggle
+  // Hamburger menu toggle
   const hamburger = document.getElementById("hamburger");
   const menuLinks = document.getElementById("menuLinks");
-
   if (hamburger && menuLinks) {
     hamburger.addEventListener("click", () => {
       menuLinks.classList.toggle("active");
@@ -18,11 +38,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const studentTableBody = document.getElementById("studentTableBody");
   const showStudentsButton = document.getElementById("showStudentsButton");
-  const loadingIndicator = document.getElementById("loadingIndicator");
   const submitAttendanceButton = document.getElementById(
     "submitAttendanceButton"
   );
   const attendanceDate = document.getElementById("attendanceDate");
+  const loadingIndicator = document.createElement("div");
+  const loadingOverlay = document.createElement("div");
+
+  // Add spinner and overlay to the body
+  loadingIndicator.className = "loading-spinner";
+  loadingOverlay.className = "loading-overlay";
+  document.body.appendChild(loadingIndicator);
+  document.body.appendChild(loadingOverlay);
+
+  const messageOverlay = document.getElementById("messageOverlay");
+  const messageContent = document.getElementById("messageContent");
+
+  const showMessage = (message) => {
+    messageContent.textContent = message;
+    messageOverlay.classList.add("active");
+  };
+
+  const hideMessage = () => {
+    messageOverlay.classList.remove("active");
+  };
+
+  const showLoading = (isLoading) => {
+    if (isLoading) {
+      loadingOverlay.classList.add("active");
+    } else {
+      loadingOverlay.classList.remove("active");
+    }
+
+    // Disable/enable buttons
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach((button) => {
+      button.disabled = isLoading;
+    });
+  };
 
   // Set today's date as the default for attendance
   const today = new Date().toISOString().split("T")[0];
@@ -31,12 +84,35 @@ document.addEventListener("DOMContentLoaded", function () {
     attendanceDate.value = today;
   }
 
-  const showLoading = (isLoading) => {
-    if (loadingIndicator) {
-      loadingIndicator.style.display = isLoading ? "block" : "none";
+  const course = document.getElementById("course");
+  const year = document.getElementById("year");
+  const semester = document.getElementById("semester");
+
+  // Enable the "View Students" button when all selections are made
+  const enableShowStudentsButton = () => {
+    if (course.value && year.value && semester.value) {
+      showStudentsButton.disabled = false;
+    } else {
+      showStudentsButton.disabled = true;
     }
   };
 
+  course.addEventListener("change", enableShowStudentsButton);
+  year.addEventListener("change", enableShowStudentsButton);
+  semester.addEventListener("change", enableShowStudentsButton);
+
+  // Enable the "Submit Attendance" button when students are loaded
+  const enableSubmitAttendanceButton = () => {
+    if (studentTableBody.children.length > 0) {
+      submitAttendanceButton.disabled = false;
+    } else {
+      submitAttendanceButton.disabled = true;
+    }
+  };
+
+  showStudentsButton.addEventListener("click", enableSubmitAttendanceButton);
+
+  // Show students based on selected criteria
   if (showStudentsButton) {
     showStudentsButton.addEventListener("click", () => {
       const course = document
@@ -51,10 +127,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (!course || !year || !semester) {
         studentTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="3">Please select a valid course, year, and semester.</td>
-                    </tr>
-                `;
+          <tr>
+            <td colspan="3">Please select a valid course, year, and semester.</td>
+          </tr>
+        `;
         return;
       }
 
@@ -66,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
       )}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(
         semester
       )}`;
-      console.log(backendURL);
+
       fetch(backendURL, {
         method: "GET",
         headers: {
@@ -75,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function () {
       })
         .then((response) => {
           if (response.status === 404) {
-            return { success: false, message: "No students found." }; // Handle 'no students' gracefully
+            return { success: false, message: "No students found." };
           }
           if (!response.ok) {
             throw new Error(`Server responded with status: ${response.status}`);
@@ -83,39 +159,38 @@ document.addEventListener("DOMContentLoaded", function () {
           return response.json();
         })
         .then((data) => {
+          studentTableBody.innerHTML = ""; // Clear previous content
           if (data.success === false && data.message === "No students found.") {
-            studentTableBody.innerHTML = ""; // Clear previous content
             const row = document.createElement("tr");
             const noDataCell = document.createElement("td");
             noDataCell.textContent =
               "No students found for the selected course, year, and semester.";
-            noDataCell.setAttribute("colspan", 3); // Adjust colspan for table structure
+            noDataCell.setAttribute("colspan", 3);
             row.appendChild(noDataCell);
             studentTableBody.appendChild(row);
             return;
           }
+
           if (data.students && data.students.length > 0) {
-            studentTableBody.innerHTML = ""; // Clear previous content
             data.students.forEach((student, index) => {
-              const row = createStudentRow(student, index + 1); // Pass index for serial number
+              const row = createStudentRow(student, index + 1);
               studentTableBody.appendChild(row);
             });
           }
         })
         .catch((error) => {
           console.error("Error fetching students:", error);
-          studentTableBody.innerHTML = ""; // Clear previous content
-          const row = document.createElement("tr");
-          const errorCell = document.createElement("td");
-          errorCell.textContent =
-            "An error occurred while fetching student data. Please try again later.";
-          errorCell.setAttribute("colspan", 3);
-          row.appendChild(errorCell);
-          studentTableBody.appendChild(row);
+          showMessage(
+            "An error occurred while fetching student data. Please try again later."
+          );
+        })
+        .finally(() => {
+          showLoading(false);
         });
     });
   }
 
+  // Submit attendance
   if (submitAttendanceButton) {
     submitAttendanceButton.addEventListener("click", () => {
       const attendanceRows = studentTableBody.querySelectorAll("tr");
@@ -138,11 +213,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       attendanceRows.forEach((row) => {
         const select = row.querySelector("select");
-        const studentName = row.querySelectorAll("td")[1].textContent; // Adjust for S.No column
+        const studentName = row.querySelectorAll("td")[1].textContent;
 
         if (select) {
           const status = select.value;
-          console.log(status);
           attendanceData.push({
             name: studentName,
             status: status,
@@ -168,7 +242,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }),
       })
         .then((response) => {
-          showLoading(false);
           if (!response.ok) {
             throw new Error(`Server responded with status: ${response.status}`);
           }
@@ -183,17 +256,22 @@ document.addEventListener("DOMContentLoaded", function () {
             { present: 0, absent: 0, on_duty: 0 }
           );
 
-          alert(
+          showMessage(
             `Attendance submitted successfully!\nPresent: ${summary.present}, Absent: ${summary.absent}, On Duty: ${summary.on_duty}`
           );
         })
         .catch((error) => {
-          alert("Error saving the attendance. Please try again later.");
+          showMessage("Error saving the attendance. Please try again later.");
           console.error("Error submitting attendance:", error);
+        })
+        .finally(() => {
+          showLoading(false);
+          setTimeout(hideMessage, 3000); // Hide message after 3 seconds
         });
     });
   }
 
+  // Helper function to create a student row
   function createStudentRow(student, serialNumber) {
     const row = document.createElement("tr");
 
@@ -208,10 +286,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const statusCell = document.createElement("td");
     const select = document.createElement("select");
     select.innerHTML = `
-            <option value="present">Present</option>
-            <option value="absent">Absent</option>
-            <option value="on_duty">On Duty</option>
-        `;
+      <option value="present">Present</option>
+      <option value="absent">Absent</option>
+      <option value="on_duty">On Duty</option>
+    `;
     statusCell.appendChild(select);
     row.appendChild(statusCell);
 

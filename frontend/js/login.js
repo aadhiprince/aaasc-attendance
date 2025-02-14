@@ -79,3 +79,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+window.addEventListener('load', () => {
+    fetch('http://localhost:3000/api/health-check', {
+      method: 'GET',
+      cache: 'no-cache',
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log('Backend warmed up!');
+        } else {
+          console.error('Warm-up failed: ', response.statusText);
+        }
+      })
+      .catch((error) => {
+        console.error('Error warming up backend:', error);
+      });
+  });
