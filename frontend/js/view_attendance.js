@@ -148,10 +148,10 @@ function populateTable(data) {
             const row = document.createElement("tr");
 
             // Add cells for each column
-            row.appendChild(createCell(item.date.split('T')[0])); // Extract date only
-            row.appendChild(createCell(item.course));
-            row.appendChild(createCell(item.year));
-            row.appendChild(createCell(item.semester));
+            // row.appendChild(createCell(item.date.split('T')[0])); // Extract date only
+            // row.appendChild(createCell(item.course));
+            // row.appendChild(createCell(item.year));
+            // row.appendChild(createCell(item.semester));
             row.appendChild(createCell(item.name));
             const statusCell = createCell(item.status);
 

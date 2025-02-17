@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 window.addEventListener('load', () => {
-    fetch('http://localhost:3000/api/health-check', {
+    fetch('https://aaasc-attendance.onrender.com/api/health-check', {
       method: 'GET',
       cache: 'no-cache',
     })

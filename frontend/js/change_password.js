@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     downloadDbButton.addEventListener('click', function () {
         // Send request to download the database
-        fetch('http://localhost:3000/download_db', {
+        fetch('https://aaasc-attendance.onrender.com/download_db', {
             method: 'GET'
         })
         .then(response => {

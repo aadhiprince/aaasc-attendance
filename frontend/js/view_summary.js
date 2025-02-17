@@ -179,7 +179,7 @@ function downloadCSV(data) {
         item.name,
         item.year,
         item.semester,
-        item.date,
+        item.start_date && item.end_date ? `${item.start_date} - ${item.end_date}` : "N/A",
         item.present_days,
         item.absent_days,
         item.on_duty_days,
