@@ -78,18 +78,6 @@ function validateToken(req, res) {
 app.get('/api/health-check', (req, res) => {
   res.status(200).json({ message: 'Server is running and warmed up!' });
 });
-app.get('/students' , (req , res)=>{
-    db.query("SELECT * FROM students", (err, results) => {  
-        if (err) {
-          console.error("Error fetching students:", err);
-          return res.status(500).json({
-            success: false,
-            message: "Error occurred while fetching students.",
-          });
-        }
-        res.status(200).json(results);
-      });
-})
 // Login endpoint
 app.post("/login",async (req, res) => {
   const { department, password } = req.body;

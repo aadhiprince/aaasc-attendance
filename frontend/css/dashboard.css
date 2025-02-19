@@ -144,19 +144,25 @@ h1 {
   margin-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
   justify-content: space-between;
+  margin-right: 15px;
+  margin-top: 5px;
 }
 
 .select-section label {
   font-weight: bold;
   margin-right: 5px;
+  margin-bottom: 5px;
 }
 
 .select-section select {
   padding: 5px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  margin-top: 1px;
+  margin-right: 25px;
+  margin-bottom: 5px;
 }
 
 .select-section button {
@@ -337,5 +343,13 @@ h1 {
 
   .select-section {
     flex-direction: column;
+    width: 100%;
   }
+}
+.logout{
+  color: #e41616b4;
+  text-decoration: underline;
+  cursor: pointer;
+
+  
 }

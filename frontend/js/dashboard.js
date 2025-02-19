@@ -88,6 +88,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const year = document.getElementById("year");
   const semester = document.getElementById("semester");
 
+  if(!course.value || !year.value || !semester.value) {
+    studentTableBody.innerHTML = `
+    <tr>
+      <td colspan="3">Please select a valid course, year, and semester.</td>
+    </tr>
+  `;
+  }
+
   // Enable the "View Students" button when all selections are made
   const enableShowStudentsButton = () => {
     if (course.value && year.value && semester.value) {
@@ -128,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!course || !year || !semester) {
         studentTableBody.innerHTML = `
           <tr>
-            <td colspan="3">Please select a valid course, year, and semester.</td>
+            <td colspan="3">Please select a course, year, and semester.</td>
           </tr>
         `;
         return;
@@ -137,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
       studentTableBody.innerHTML = ""; // Clear previous data
       showLoading(true);
 
-      const backendURL = `https://aaasc-attendance.onrender.com/get_students?course=${encodeURIComponent(
+      const backendURL = `http://localhost:3000/get_students?course=${encodeURIComponent(
         course
       )}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(
         semester
@@ -186,6 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .finally(() => {
           showLoading(false);
+          setTimeout(hideMessage, 1000)
         });
     });
   }
@@ -224,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      const backendSubmitURL = "https://aaasc-attendance.onrender.com/submit_attendance";
+      const backendSubmitURL = "http://localhost:3000/submit_attendance";
       showLoading(true);
 
       fetch(backendSubmitURL, {
@@ -259,6 +268,8 @@ document.addEventListener("DOMContentLoaded", function () {
           showMessage(
             `Attendance submitted successfully!\nPresent: ${summary.present}, Absent: ${summary.absent}, On Duty: ${summary.on_duty}`
           );
+          studentTableBody.innerHTML = "";
+          
         })
         .catch((error) => {
           showMessage("Error saving the attendance. Please try again later.");
@@ -266,8 +277,9 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .finally(() => {
           showLoading(false);
-          setTimeout(hideMessage, 3000); // Hide message after 3 seconds
+          setTimeout(hideMessage, 1000); // Hide message after 3 seconds
         });
+        
     });
   }
 

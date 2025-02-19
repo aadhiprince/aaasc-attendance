@@ -38,6 +38,7 @@
       <div class="select-section">
         <label for="course">Course:</label>
         <select id="course" name="course">
+          <option value="">Select Course</option>
           <option value="bsc_cs">BSC_CS</option>
           <option value="bba">BBA</option>
           <option value="bcom">BCOM</option>
@@ -46,6 +47,7 @@
 
         <label for="year">Year:</label>
         <select id="year" name="year">
+          <option value="">Select Year</option>
           <option value="1st Year">1st Year</option>
           <option value="2nd Year">2nd Year</option>
           <option value="3rd Year">3rd Year</option>
@@ -53,6 +55,7 @@
 
         <label for="semester">Semester:</label>
         <select id="semester" name="semester">
+          <option value="">Select Semester</option>
           <option value="Semester 1">Semester 1</option>
           <option value="Semester 2">Semester 2</option>
           <option value="Semester 3">Semester 3</option>
@@ -99,9 +102,15 @@
     <div class="message-overlay" id="messageOverlay">
       <div class="message-content" id="messageContent"></div>
     </div>
+    <div><p>If you encounter any problem please <a class="logout">Logout</a> and login again</p></div>
 
     <script src="./js/dashboard.js"></script>
     <script>
+      const logout = document.querySelector(".logout");
+      logout.addEventListener("click", () => {
+        localStorage.removeItem("auth_token");
+        window.location.href = "login.html";
+      })
       document.addEventListener("DOMContentLoaded", function () {
         const logoutBtn = document.getElementById("logoutButton");
 
