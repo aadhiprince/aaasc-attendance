@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
       studentTableBody.innerHTML = ""; // Clear previous data
       showLoading(true);
 
-      const backendURL = `http://localhost:3000/get_students?course=${encodeURIComponent(
+      const backendURL = `https://aaasc-attendance.onrender.com/get_students?course=${encodeURIComponent(
         course
       )}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(
         semester
@@ -233,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      const backendSubmitURL = "http://localhost:3000/submit_attendance";
+      const backendSubmitURL = "https://aaasc-attendance.onrender.com/submit_attendance";
       showLoading(true);
 
       fetch(backendSubmitURL, {
