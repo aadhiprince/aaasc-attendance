@@ -242,6 +242,17 @@ app.post("/update_department_password", (req, res) => {
   );
 });
 
+app.get("/students" , (req , res)=>{
+  db.query("SELECT * FROM students" , (err , results)=>{
+    if(err){
+      console.log(err)
+    }
+    else{
+      res.send(results)
+    }
+  })
+})
+
 // Route to fetch students based on course, year, and semester
 app.get("/get_students", (req, res) => {
   if (validateToken(req, res)) {

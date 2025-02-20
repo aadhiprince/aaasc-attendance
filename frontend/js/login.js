@@ -1,3 +1,20 @@
+window.addEventListener("load", () => {
+    fetch("https://aaasc-attendance.onrender.com/api/health-check", {
+      method: "GET",
+      cache: "no-cache",
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Backend warmed up!");
+        } else {
+          console.error("Warm-up failed: ", response.statusText);
+        }
+      })
+      .catch((error) => {
+        console.error("Error warming up backend:", error);
+      });
+  });
+  
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('.login-form');
     const departmentField = document.querySelector('#department');
@@ -79,19 +96,3 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-window.addEventListener('load', () => {
-    fetch('https://aaasc-attendance.onrender.com/api/health-check', {
-      method: 'GET',
-      cache: 'no-cache',
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log('Backend warmed up!');
-        } else {
-          console.error('Warm-up failed: ', response.statusText);
-        }
-      })
-      .catch((error) => {
-        console.error('Error warming up backend:', error);
-      });
-  });

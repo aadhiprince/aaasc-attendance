@@ -210,7 +210,7 @@ function downloadCSV(data) {
         item.course,
         item.year,
         item.semester,
-        item.student_name,
+        item.name,
         item.status
     ]);
 

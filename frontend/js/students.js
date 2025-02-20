@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delete student
     function deleteStudent(studentId) {
         if (confirm('Are you sure you want to delete this student?')) {
-            fetch(`http://localhost:3000/delete_student?id=${studentId}`, {
+            fetch(`https://aaasc-attendance.onrender.com/delete_student?id=${studentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

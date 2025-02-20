@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .finally(() => {
           showLoading(false);
-          setTimeout(hideMessage, 1000)
+          setTimeout(hideMessage, 2000)
         });
     });
   }
@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .finally(() => {
           showLoading(false);
-          setTimeout(hideMessage, 1000); // Hide message after 3 seconds
+          setTimeout(hideMessage, 3000); // Hide message after 3 seconds
         });
         
     });
