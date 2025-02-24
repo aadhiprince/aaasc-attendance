@@ -69,7 +69,7 @@ A **mobile-friendly**, full-stack web application that empowers staff to manage 
 
 ## 🌐 Live Demo
 - **Department** : aaascbsccs
-- **Password** : developer
-- **[Live Link](https://aaasc-attendance-project.netlify.app/)
+- **Password** : 12345678
+- [Live Link](https://aaasc-attendance-project.netlify.app/)
 
 
