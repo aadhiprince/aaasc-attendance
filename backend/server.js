@@ -18,28 +18,80 @@ app.use(express.json());
 app.use(logger("dev"));
 
 // Secret key for JWT
-const SECRET_KEY = process.env.SECRET_KEY;
-if (!SECRET_KEY) {
-  console.error("SECRET_KEY not set in the environment variables!");
-}
+const SECRET_KEY = process.env.SECRET_KEY || "your-secret-key";
 
-// Database Configuration - MySQL
-const db = mysql.createConnection({
+// Database Configuration - MySQL Connection Pool
+const db = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   port: process.env.MYSQL_PORT,
-  ssl: { rejectUnauthorized: false}, // Aiven requires SSL
-  connectTimeout: 10000,
+  ssl: { rejectUnauthorized: false }, // Aiven requires SSL
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
-db.connect((err) => {
-  if (err) {
-    console.error("Error connecting to database:", err);
-  } else {
-    console.log("Connected to MySQL database");
+
+// Auto-Initialize Database function
+async function initializeDatabase() {
+  try {
+    const adminHash = await bcrypt.hash("admin123", 10);
+    const staffHash = await bcrypt.hash("password123", 10);
+
+    const schemaQueries = [
+      "CREATE TABLE IF NOT EXISTS departments (id INT AUTO_INCREMENT PRIMARY KEY, department_name VARCHAR(255) NOT NULL UNIQUE, department_password VARCHAR(255) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
+      "CREATE TABLE IF NOT EXISTS admin (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL UNIQUE, hashed_password VARCHAR(255) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
+      "CREATE TABLE IF NOT EXISTS students (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, course VARCHAR(100) NOT NULL, year VARCHAR(20) NOT NULL, semester VARCHAR(20) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
+      "CREATE TABLE IF NOT EXISTS attendance (id INT AUTO_INCREMENT PRIMARY KEY, student_id INT NOT NULL, date DATE NOT NULL, course VARCHAR(100) NOT NULL, year VARCHAR(20) NOT NULL, semester VARCHAR(20) NOT NULL, status ENUM('present', 'absent', 'on_duty') NOT NULL, name VARCHAR(255) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE)"
+    ];
+
+    for (const sql of schemaQueries) {
+      await db.promise().query(sql);
+    }
+
+    // FORCE RESET: Clear old hashes to ensure new ones are used
+    await db.promise().query("DELETE FROM admin");
+    await db.promise().query("DELETE FROM departments");
+
+    // Seed Admin
+    await db.promise().query("INSERT INTO admin (username, hashed_password) VALUES (?, ?)", ["admin", adminHash]);
+
+    // Seed Departments
+    const departments = [["bsc_cs", staffHash], ["bcom", staffHash], ["bba", staffHash], ["bca", staffHash]];
+    for (const [name, pass] of departments) {
+      await db.promise().query("INSERT INTO departments (department_name, department_password) VALUES (?, ?)", [name, pass]);
+    }
+
+    // Comprehensive Student Seeding: 10 students per semester per year per department (Total 240)
+    console.log("Generating 240 students for testing...");
+    await db.promise().query("DELETE FROM students");
+    const courses = ["bsc_cs", "bcom", "bba", "bca"];
+    const yearSemMap = [
+      { year: "1st year", semesters: ["semester 1", "semester 2"] },
+      { year: "2nd year", semesters: ["semester 3", "semester 4"] },
+      { year: "3rd year", semesters: ["semester 5", "semester 6"] }
+    ];
+
+    for (const course of courses) {
+      for (const mapping of yearSemMap) {
+        for (const semester of mapping.semesters) {
+          for (let i = 1; i <= 10; i++) {
+            const studentName = `${course.toUpperCase()} Student ${mapping.year.charAt(0)}${semester.slice(-1)} - ${String(i).padStart(2, '0')}`;
+            await db.promise().query("INSERT INTO students (name, course, year, semester) VALUES (?, ?, ?, ?)", [studentName, course, mapping.year, semester]);
+          }
+        }
+      }
+    }
+
+    console.log("Database initialized: 240 students seeded.");
+  } catch (err) {
+    console.error("Database initialization failed:", err);
   }
-});
+}
+
+// Initialize on start
+initializeDatabase();
 
 function generateToken(department, expiresIn = "1h") {
   return jwt.sign({ department }, SECRET_KEY, {
@@ -47,7 +99,6 @@ function generateToken(department, expiresIn = "1h") {
     algorithm: "HS256",
   });
 }
-
 
 function validateToken(req, res) {
   const token = req.headers["authorization"];
@@ -64,78 +115,49 @@ function validateToken(req, res) {
     });
     const department = decodedToken.department;
     if (!department) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized access." });
+      res.status(401).json({ success: false, message: "Unauthorized access." });
+      return false;
     }
   } catch (err) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Invalid token. Please log in again." });
+    res.status(401).json({ success: false, message: "Invalid token. Please log in again." });
+    return false;
   }
   return true;
 }
-app.get('/api/health-check', (req, res) => {
-  res.status(200).json({ message: 'Server is running and warmed up!' });
+app.get("/api/health-check", (req, res) => {
+  res.status(200).json({ message: "Server is online" });
 });
-// Login endpoint
-app.post("/login",async (req, res) => {
+
+app.post("/login", async (req, res) => {
   const { department, password } = req.body;
 
- const results = await new Promise((resolve, reject) => {
-  db.query(
-    "SELECT department_password FROM departments WHERE department_name = ?",
-    [department],
+  try {
+    const [results] = await db.promise().query("SELECT department_password FROM departments WHERE department_name = ?", [department]);
 
-    (err, result) => {
-      if (err) {
-        reject(err);
-        console.error("Error during login:", err);
-        return res.status(400).json({
-          success: false,
-          message: "An error occurred during login.",
-        });
-      }
-      resolve(result);
-      console.log("Resolved")
+    if (results.length === 0) {
+      return res.status(401).json({ success: false, message: "Invalid department or password." });
     }
-  )});
-      if(results.length === 0) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid department or password.",
-        });
-      }
-      const storedHash = results[0].department_password;
-      const isPasswordValid = bcrypt.compareSync(password, storedHash);
-    
 
-      if (!isPasswordValid) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid department or password.",
-        });
-      }
+    const storedHash = results[0].department_password;
+    const isPasswordValid = await bcrypt.compare(password, storedHash);
 
-      // Generate a token (assuming you have a `generateToken` function)
-      const token = generateToken(department);
-
-      // Return success response
-      res.status(200).json({
-        success: true,
-        message: "Login successful!",
-        token,
-      });
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid department or password." });
     }
-  );
 
-
+    const token = generateToken(department);
+    res.status(200).json({ success: true, message: "Login successful!", token });
+  } catch (err) {
+    console.error("Login Error:", err);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
 
 // Admin login endpoint
 app.post("/admin_login", (req, res) => {
   const { username, password } = req.body;
   // Retrieve the stored hash from the database
-   db.query(
+  db.query(
     "SELECT hashed_password FROM admin WHERE username = ?",
     [username],
     (err, results) => {
@@ -173,12 +195,12 @@ app.post("/admin_login", (req, res) => {
           role: "admin",
         },
         SECRET_KEY,
-        { expiresIn: "1hr", algorithm: "HS256" }
+        { expiresIn: "1hr", algorithm: "HS256" },
       );
 
       // Return success response
       res.status(200).json({ success: true, token });
-    }
+    },
   );
 });
 // Update department password route (Admin access only)
@@ -238,20 +260,19 @@ app.post("/update_department_password", (req, res) => {
         success: true,
         message: "Password updated successfully!",
       });
-    }
+    },
   );
 });
 
-app.get("/students" , (req , res)=>{
-  db.query("SELECT * FROM students" , (err , results)=>{
-    if(err){
-      console.log(err)
+app.get("/students", (req, res) => {
+  db.query("SELECT * FROM students", (err, results) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(results);
     }
-    else{
-      res.send(results)
-    }
-  })
-})
+  });
+});
 
 // Route to fetch students based on course, year, and semester
 app.get("/get_students", (req, res) => {
@@ -284,7 +305,7 @@ app.get("/get_students", (req, res) => {
         }));
 
         res.status(200).json({ success: true, students: studentList });
-      }
+      },
     );
   }
 });
@@ -377,7 +398,7 @@ app.get("/view_summary", (req, res) => {
         }));
 
         res.status(200).json({ success: true, summary: summaryData });
-      }
+      },
     );
   }
 });
@@ -402,7 +423,7 @@ app.post("/add_student", (req, res) => {
         res
           .status(201)
           .json({ success: true, message: "Student added successfully" });
-      }
+      },
     );
   }
 });
@@ -427,7 +448,7 @@ app.put("/update_student", (req, res) => {
         res
           .status(200)
           .json({ success: true, message: "Student updated successfully" });
-      }
+      },
     );
   }
 });
@@ -474,7 +495,7 @@ app.delete("/delete_student", (req, res) => {
               "Student and associated attendance records deleted successfully.",
           });
         });
-      }
+      },
     );
   }
 });
@@ -513,14 +534,14 @@ app.post("/submit_attendance", (req, res) => {
               if (err) {
                 console.error(
                   "Error deleting existing attendance records:",
-                  err
+                  err,
                 );
                 return res.status(500).json({
                   success: false,
                   message: "An error occurred while submitting attendance.",
                 });
               }
-            }
+            },
           );
         }
 
@@ -565,7 +586,7 @@ app.post("/submit_attendance", (req, res) => {
                           "An error occurred while submitting attendance.",
                       });
                     }
-                  }
+                  },
                 );
               } else {
                 console.warn(`Student not found: ${student.name}`);
@@ -587,10 +608,10 @@ app.post("/submit_attendance", (req, res) => {
                   message: "Attendance submitted successfully.",
                 });
               }
-            }
+            },
           );
         });
-      }
+      },
     );
   }
 });
