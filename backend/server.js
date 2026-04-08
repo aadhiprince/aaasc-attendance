@@ -64,7 +64,7 @@ async function initializeDatabase() {
     }
 
     // Comprehensive Student Seeding: 10 students per semester per year per department (Total 240)
-    console.log("Generating 240 students for testing...");
+    console.log("System Status: Synchronizing database and preparing test data...");
     await db.promise().query("DELETE FROM students");
     const courses = ["bsc_cs", "bcom", "bba", "bca"];
     const yearSemMap = [
@@ -84,7 +84,7 @@ async function initializeDatabase() {
       }
     }
 
-    console.log("Database initialized: 240 students seeded.");
+    console.log("System Status: Database initialized and 240 test students ready.");
   } catch (err) {
     console.error("Database initialization failed:", err);
   }
@@ -246,7 +246,6 @@ app.post("/update_department_password", (req, res) => {
           message: "An error occurred while updating the password.",
         });
       }
-      console.log(results);
       // Check if the department exists
       if (results.affectedRows === 0) {
         return res.status(404).json({
