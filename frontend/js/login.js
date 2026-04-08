@@ -1,5 +1,5 @@
 window.addEventListener("load", () => {
-    fetch("https://aaasc-attendance.onrender.com/api/health-check", {
+    fetch(`${API_BASE_URL}/api/health-check`, {
       method: "GET",
       cache: "no-cache",
     })
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loadingPage.style.display = "flex";
 
         // Send request to the backend for verification
-        fetch('https://aaasc-attendance.onrender.com/login', {  // Assuming backend route is /login
+        fetch(`${API_BASE_URL}/login`, {  // Assuming backend route is /login
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -43,6 +43,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     console.log("Page loaded. Initializing summary view...");
+
+    // Dynamic Semester Filtering Logic
+    const yearSelect = document.getElementById('year');
+    const semesterSelect = document.getElementById('semester');
+
+    const updateSemesterOptions = () => {
+        const selectedYear = yearSelect.value;
+        const previousSemester = semesterSelect.value;
+        
+        const semesterMap = {
+            "1st year": ["semester 1", "semester 2"],
+            "2nd year": ["semester 3", "semester 4"],
+            "3rd year": ["semester 5", "semester 6"]
+        };
+
+        semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+
+        if (selectedYear && semesterMap[selectedYear]) {
+            semesterMap[selectedYear].forEach(sem => {
+                const option = document.createElement("option");
+                option.value = sem;
+                // Capitalize first letter of each word for display
+                option.textContent = sem.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                semesterSelect.appendChild(option);
+            });
+            
+            if (semesterMap[selectedYear].includes(previousSemester)) {
+                semesterSelect.value = previousSemester;
+            }
+        }
+    };
+
+    if (yearSelect) {
+        yearSelect.addEventListener('change', updateSemesterOptions);
+        updateSemesterOptions(); // Initial call
+    }
 });
 
 // Function to filter and summarize attendance data
@@ -77,7 +113,7 @@ function filterSummary() {
     }
 
     // Fetch summary data from the backend
-    fetch(`https://aaasc-attendance.onrender.com/view_summary?course=${course}&year=${year}&semester=${semester}&start_date=${fromDate}&end_date=${toDate}`, {
+    fetch(`${API_BASE_URL}/view_summary?start_date=${encodeURIComponent(fromDate)}&end_date=${encodeURIComponent(toDate)}&course=${encodeURIComponent(course)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(semester)}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,  // Add token to Authorization header

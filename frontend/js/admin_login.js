@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (loadingSpinner) loadingSpinner.style.display = "flex";
 
             // Send the credentials to the backend
-            fetch('https://aaasc-attendance.onrender.com/admin_login', {
+            fetch(`${API_BASE_URL}/admin_login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

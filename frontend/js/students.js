@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        fetch(`https://aaasc-attendance.onrender.com/get_students?course=${encodeURIComponent(course)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(semester)}`, {
+        fetch(`${API_BASE_URL}/get_students?course=${encodeURIComponent(course)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(semester)}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const studentData = { name, course, year, semester };
         const method = selectedStudentId ? 'PUT' : 'POST';
-        const url = selectedStudentId ? `https://aaasc-attendance.onrender.com/update_student?id=${selectedStudentId}` : 'https://aaasc-attendance.onrender.com/add_student';
+        const url = selectedStudentId ? `${API_BASE_URL}/update_student?id=${selectedStudentId}` : `${API_BASE_URL}/add_student`;
 
         if (selectedStudentId) {
             studentData.id = selectedStudentId;
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delete student
     function deleteStudent(studentId) {
         if (confirm('Are you sure you want to delete this student?')) {
-            fetch(`https://aaasc-attendance.onrender.com/delete_student?id=${studentId}`, {
+            fetch(`${API_BASE_URL}/delete_student?id=${studentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -200,4 +200,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial fetch to display students
     fetchStudents();
+
+    // Dynamic Semester Filtering Logic
+    const setupSemesterFilter = (yearEl, semEl) => {
+        const updateOptions = () => {
+            const selectedYear = yearEl.value.toLowerCase();
+            const previousSemester = semEl.value.toLowerCase();
+            
+            const semesterMap = {
+                "1st year": ["semester 1", "semester 2"],
+                "2nd year": ["semester 3", "semester 4"],
+                "3rd year": ["semester 5", "semester 6"]
+            };
+
+            const isFilter = yearEl.id === 'year';
+            semEl.innerHTML = isFilter ? '<option value="">Select Semester</option>' : '';
+
+            if (selectedYear && semesterMap[selectedYear]) {
+                semesterMap[selectedYear].forEach(sem => {
+                    const option = document.createElement("option");
+                    option.value = sem;
+                    // Capitalize for display
+                    option.textContent = sem.charAt(0).toUpperCase() + sem.slice(1);
+                    semEl.appendChild(option);
+                });
+                
+                if (previousSemester && semesterMap[selectedYear].includes(previousSemester)) {
+                    semEl.value = previousSemester;
+                }
+            }
+        };
+
+        if (yearEl) {
+            yearEl.addEventListener('change', updateOptions);
+            updateOptions(); // Initial call
+        }
+    };
+
+    // Apply to both the Filter and the Form
+    setupSemesterFilter(yearSelect, semesterSelect);
+    setupSemesterFilter(yearInput, semesterInput);
 });

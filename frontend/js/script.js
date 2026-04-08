@@ -1,5 +1,4 @@
-window.addEventListener("load", () => {
-    fetch("https://aaasc-attendance.onrender.com/api/health-check", {
+    fetch(`${API_BASE_URL}/api/health-check`, {
       method: "GET",
       cache: "no-cache",
     })

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Send request to update the password
-        fetch('https://aaasc-attendance.onrender.com/update_department_password', {
+        fetch(`${API_BASE_URL}/update_department_password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     downloadDbButton.addEventListener('click', function () {
         // Send request to download the database
-        fetch('https://aaasc-attendance.onrender.com/download_db', {
+        fetch(`${API_BASE_URL}/download_db`, {
             method: 'GET'
         })
         .then(response => {

@@ -32,7 +32,7 @@ async function fetchAttendanceData() {
         }
 
         // Fetch data from backend with token included in the headers
-        const response = await fetch(`https://aaasc-attendance.onrender.com/view_attendance?date=${date}&course=${course}&year=${year}&semester=${semester}&nocache=${new Date().getTime()}`, {
+        const response = await fetch(`${API_BASE_URL}/view_attendance?date=${encodeURIComponent(date)}&course=${encodeURIComponent(course)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(semester)}&nocache=${new Date().getTime()}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}` // Include token in Authorization header
@@ -242,4 +242,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // If token is present, proceed with the rest of the page logic
     console.log("Token found. Proceeding with page logic.");
+
+    // Dynamic Semester Filtering Logic
+    const yearSelect = document.getElementById('year');
+    const semesterSelect = document.getElementById('semester');
+
+    const updateSemesterOptions = () => {
+        const selectedYear = yearSelect.value;
+        const previousSemester = semesterSelect.value;
+        
+        const semesterMap = {
+            "1st year": ["semester 1", "semester 2"],
+            "2nd year": ["semester 3", "semester 4"],
+            "3rd year": ["semester 5", "semester 6"]
+        };
+
+        semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+
+        if (selectedYear && semesterMap[selectedYear]) {
+            semesterMap[selectedYear].forEach(sem => {
+                const option = document.createElement("option");
+                option.value = sem;
+                // Capitalize first letter of each word for display
+                option.textContent = sem.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                semesterSelect.appendChild(option);
+            });
+            
+            if (semesterMap[selectedYear].includes(previousSemester)) {
+                semesterSelect.value = previousSemester;
+            }
+        }
+    };
+
+    if (yearSelect) {
+        yearSelect.addEventListener('change', updateSemesterOptions);
+        updateSemesterOptions(); // Initial call
+    }
 });
